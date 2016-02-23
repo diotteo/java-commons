@@ -1,19 +1,7 @@
 package ca.dioo.java.commons;
 
-import java.net.Socket;
-import java.net.ServerSocket;
-import java.net.UnknownHostException;
-import java.io.File;
 import java.io.IOException;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStreamReader;
 import java.io.InputStream;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.PrintWriter;
-import java.util.Iterator;
 import java.lang.Math;
 import java.util.Arrays;
 
@@ -27,6 +15,7 @@ public class BinaryWithHeaderStream extends InputStream {
 	private int searchOffset;
 	private int end;
 	private InputStream is;
+	private byte[] endMagic;
 
 
 	public BinaryWithHeaderStream() {
@@ -35,6 +24,11 @@ public class BinaryWithHeaderStream extends InputStream {
 
 
 	public BinaryWithHeaderStream(InputStream is) {
+		this(is, END_MAGIC);
+	}
+
+
+	public BinaryWithHeaderStream(InputStream is, byte[] endMagic) {
 		this.is = is;
 		buf = new byte[32768];
 		count = 0;
@@ -42,6 +36,7 @@ public class BinaryWithHeaderStream extends InputStream {
 
 		searchOffset = 0;
 		end = -1;
+		this.endMagic = endMagic;
 	}
 
 
@@ -79,7 +74,7 @@ public class BinaryWithHeaderStream extends InputStream {
 		if (end == -1) {
 			throw new Error("end not yet found");
 		}
-		return Arrays.copyOfRange(buf, pos + END_MAGIC.length, count);
+		return Arrays.copyOfRange(buf, pos + endMagic.length, count);
 	}
 
 
@@ -142,18 +137,18 @@ public class BinaryWithHeaderStream extends InputStream {
 		for (int i = searchOffset; i < buf.length; i++) {
 			int j = 0;
 			for ( ;
-					j < END_MAGIC.length
+					j < endMagic.length
 					&& i + j < buf.length
-					&& buf[i + j] == END_MAGIC[j]
+					&& buf[i + j] == endMagic[j]
 					; j++);
 
-			//END_MAGIC found
-			if (j == END_MAGIC.length) {
+			//endMagic found
+			if (j == endMagic.length) {
 				end = i;
 				searchOffset = end;
-			} else if (j >= END_MAGIC.length || i + j >= buf.length) {
+			} else if (j >= endMagic.length || i + j >= buf.length) {
 				//Pass
-			} else if (buf[i + j] == END_MAGIC[j]) {
+			} else if (buf[i + j] == endMagic[j]) {
 				searchOffset = i;
 			}
 		}
