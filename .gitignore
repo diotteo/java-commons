@@ -1,2 +1,8 @@
 build/
 *.jar
+
+test/orig.avi
+test/serv.test
+test/serv.out
+test/priv/*
+test/nomagic.test

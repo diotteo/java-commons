@@ -5,7 +5,7 @@ import java.io.InputStream;
 import java.lang.Math;
 import java.util.Arrays;
 
-public class BinaryWithHeaderStream extends InputStream {
+public class BinaryWithHeaderStream {
 	private static final byte[] END_MAGIC = new byte[]{(byte)0xEE, (byte)0x00, (byte)0xFF};
 
 	protected byte[] buf;
@@ -16,6 +16,9 @@ public class BinaryWithHeaderStream extends InputStream {
 	private int end;
 	private InputStream is;
 	private byte[] endMagic;
+
+	private BinaryStream bs;
+	private HeaderStream hs;
 
 
 	public BinaryWithHeaderStream() {
@@ -37,44 +40,110 @@ public class BinaryWithHeaderStream extends InputStream {
 		searchOffset = 0;
 		end = -1;
 		this.endMagic = endMagic;
+
+		bs = this.new BinaryStream();
+		hs = this.new HeaderStream();
 	}
 
 
-	public int read() throws IOException {
-		int ret = _read(1);
+	public HeaderStream getHeaderStream() {
+		return hs;
+	}
 
-		if (ret < 1) {
-			return -1;
+
+	public BinaryStream getBinaryStream() {
+		return bs;
+	}
+
+
+	public class HeaderStream extends InputStream {
+		private HeaderStream() {
 		}
 
-		pos++;
-		return (int)(buf[pos - 1] & 0xFF);
-	}
 
-
-	public int read(byte[] b, int off, int len) throws IOException {
-		int ret = _read(len);
-
-		if (ret < 1) {
-			return -1;
+		public int available() throws IOException {
+			int n = _readAvailable();
+			return n;
 		}
 
-		System.arraycopy(buf, pos, b, off, ret);
-		pos += ret;
-		return ret;
-	}
+		public int read() throws IOException {
+			byte[] b = new byte[1];
 
+			int ret = read(b, 0, 1);
+			if (ret < 1) {
+				return -1;
+			}
 
-	public int available() throws IOException {
-		return _readAvailable();
-	}
-
-
-	public byte[] getBuffer() {
-		if (end == -1) {
-			throw new Error("end not yet found");
+			return (int)(b[0] & 0xFF);
 		}
-		return Arrays.copyOfRange(buf, pos + endMagic.length, count);
+
+		public int read(byte[] b, int off, int len) throws IOException {
+			int ret = _read(len);
+
+			if (ret < 1) {
+				return -1;
+			}
+
+			System.arraycopy(buf, pos, b, off, ret);
+			pos += ret;
+
+			return ret;
+		}
+	}
+
+
+	private class BinaryStream extends InputStream {
+		private BinaryStream() {
+		}
+
+
+		public int available() throws IOException {
+			if (end == -1) {
+				throw new IOException("end magic not yet found");
+			} else if (pos < end) {
+				throw new IOException("HeaderStream not yet exhausted");
+			}
+
+			return count - (end + endMagic.length) + is.available();
+		}
+
+		public int read() throws IOException {
+			byte[] b = new byte[1];
+
+			int ret = read(b, 0, 1);
+			if (ret < 1) {
+				return -1;
+			}
+
+			return (int)(b[0] & 0xFF);
+		}
+
+		public int read(byte[] b, int off, int len) throws IOException {
+			int n = 0;
+
+			if (end == -1) {
+				throw new IOException("end magic not yet found");
+			} else if (pos < end) {
+				throw new IOException("HeaderStream not yet exhausted");
+
+			} else if (count > end + endMagic.length) {
+				int nbInBuf = count - (end + endMagic.length);
+				int nb = Math.min(nbInBuf, len);
+
+				System.arraycopy(buf, end + endMagic.length, b, off, nb);
+				off += nb;
+				len -= nb;
+				n = nb;
+				count = end;
+
+				if (len > 0) {
+					n += is.read(b, off, len);
+				}
+				return n;
+			}
+
+			return is.read(b, off, len);
+		}
 	}
 
 
@@ -95,8 +164,9 @@ public class BinaryWithHeaderStream extends InputStream {
 
 
 	private int _read(int nbBytes) throws IOException {
-		int nbToRead = Math.min(buf.length - count,
-				Math.max(is.available(), nbBytes));
+		//int nbToRead = Math.min(buf.length - count,
+		//		Math.max(is.available(), nbBytes));
+		int nbToRead = Math.max(is.available(), nbBytes);
 
 		if (end > -1) {
 			if (pos >= end) {

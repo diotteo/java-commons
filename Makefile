@@ -44,8 +44,10 @@ $(objects): $(BPATH)/%.class: src/%.java $(libs) $(BUILD_DIR)
 
 
 .PHONY: test
-test: $(test_objects)
-	$(JAVA) -ea $(JAVA_ARGS) -cp $(subst $(space),:,$(libs)):$(BUILD_DIR) Test
+test: $(objects) $(test_objects)
+	cat test/server_response.txt test/end_magic.bin test/orig.avi > test/serv.test
+	$(JAVA) -ea $(JAVA_ARGS) -cp $(subst $(space),:,$(libs)):$(BUILD_DIR) Test $(ARGS)
+	diff -qs test/orig.avi test/serv.out
 
 
 $(test_objects): $(BUILD_DIR)/%.class: test/%.java $(libs) $(BUILD_DIR)
