@@ -134,10 +134,13 @@ public class BinaryWithHeaderStream {
 				off += nb;
 				len -= nb;
 				n = nb;
-				count = end;
+				count = end + endMagic.length;
 
 				if (len > 0) {
-					n += is.read(b, off, len);
+					int ret = is.read(b, off, len);
+					if (ret > 0) {
+						n += ret;
+					}
 				}
 				return n;
 			}
