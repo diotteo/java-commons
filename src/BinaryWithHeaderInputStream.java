@@ -5,7 +5,7 @@ import java.io.InputStream;
 import java.lang.Math;
 import java.util.Arrays;
 
-public class BinaryWithHeaderStream {
+public class BinaryWithHeaderInputStream {
 	private static final byte[] END_MAGIC = new byte[]{(byte)0xEE, (byte)0x00, (byte)0xFF};
 
 	protected byte[] buf;
@@ -21,17 +21,17 @@ public class BinaryWithHeaderStream {
 	private HeaderStream hs;
 
 
-	public BinaryWithHeaderStream() {
+	public BinaryWithHeaderInputStream() {
 		throw new Error("This is not the constructor you are looking for");
 	}
 
 
-	public BinaryWithHeaderStream(InputStream is) {
+	public BinaryWithHeaderInputStream(InputStream is) {
 		this(is, END_MAGIC);
 	}
 
 
-	public BinaryWithHeaderStream(InputStream is, byte[] endMagic) {
+	public BinaryWithHeaderInputStream(InputStream is, byte[] endMagic) {
 		this.is = is;
 		buf = new byte[32768];
 		count = 0;
