@@ -15,7 +15,7 @@ public class Utils {
 
 
 	public static String join(CharSequence delimiter, CharSequence... elements) {
-		if (elements.length < 1) {
+		if (elements == null || elements.length < 1) {
 			return "";
 		}
 
@@ -30,7 +30,7 @@ public class Utils {
 
 
 	public static String join(CharSequence delim0, CharSequence delim1, CharSequence[]... elements) {
-		if (elements.length < 1) {
+		if (elements == null || elements.length < 1) {
 			return "";
 		}
 
