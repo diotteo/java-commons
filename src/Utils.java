@@ -71,4 +71,42 @@ public class Utils {
 
 		return sb.toString();
 	}
+
+
+	public static String getTimeStr(long timestamp) {
+		String timeStr = "";
+		boolean isEmpty = true;
+
+		int SEC_PER_YEAR = 60 * 60 * 24 * 365;
+		if (timestamp > SEC_PER_YEAR) {
+			timeStr += timestamp / SEC_PER_YEAR + "y";
+			timestamp = timestamp % SEC_PER_YEAR;
+		}
+		int SEC_PER_MONTH = 60 * 60 * 24 * 30;
+		if (timestamp > SEC_PER_MONTH) {
+			timeStr += timestamp / SEC_PER_MONTH + "M";
+			timestamp = timestamp % SEC_PER_MONTH;
+		}
+		int SEC_PER_DAY = 60 * 60 * 24;
+		if (timestamp > SEC_PER_DAY) {
+			timeStr += timestamp / SEC_PER_DAY + "d";
+			timestamp = timestamp % SEC_PER_DAY;
+		}
+		int SEC_PER_HOUR = 60 * 60;
+		if (timestamp > SEC_PER_HOUR) {
+			timeStr += timestamp / SEC_PER_HOUR + "h";
+			timestamp = timestamp % SEC_PER_HOUR;
+		}
+		if (timestamp > 60) {
+			timeStr += timestamp / 60 + "m";
+			timestamp = timestamp % 60;
+		}
+		if (timestamp > 0) {
+			timeStr += timestamp + "s";
+		} else {
+			timeStr += "0s";
+		}
+
+		return timeStr;
+	}
 }
